@@ -48,7 +48,7 @@ UserSchema.methods.generateAuthToken = function() {
     
     user.tokens.push({access, token});
     
-    user.save().then(() => {
+    return user.save().then(() => {
         return token;
     });
 }
@@ -70,6 +70,24 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth'
     });
 }
+
+UserSchema.statics.findByCredentials = function (email, password) {
+    let User = this;
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject();
+        }
+
+        return bcrypt.compare(password,user.password).then((res)=>{
+            if (res){
+                return user;
+            }
+            else {
+                return Promise.reject();
+            }
+        });
+    });
+};
 
 UserSchema.pre('save', function(next){
     var user = this;
